@@ -3,11 +3,11 @@ CMAKE_MINIMUM_REQUIRED( VERSION 2.8 )
 PROJECT( h_tarjan )
 
 SET( HTarjan_Src
-  src/htarjan.h
+  src/naivehd.h
 )
 
 SET( HTarjan_Hdr
-  src/htarjan.cpp
+  src/naivehd.cpp
   src/main.cpp
 )
 
@@ -20,6 +20,8 @@ endif()
 
 set( LIBLEMON_ROOT "$ENV{HOME}/lemon" CACHE PATH "Additional search directory for lemon library" )
 
+include_directories( "${LIBLEMON_ROOT}/include" "src" )
+link_directories( "${LIBLEMON_ROOT}/lib" )
 set( CommonLibs
 	emon
 )
