@@ -1,24 +1,47 @@
-#ifndef HTARJAN_H
-#define HTARJAN_H
+#ifndef NAIVEHD_H
+#define NAIVEHD_H
 
-#include <lemon/list_graph.h>
 #include <lemon/adaptors.h>
 #include <vector>
 #include <set>
 #include <ostream>
 
+#include "hd.h"
+
 class NaiveHD
 {
 public:
-  typedef lemon::ListDigraph Digraph;
-
-  TEMPLATE_DIGRAPH_TYPEDEFS(Digraph);
-  
   NaiveHD(const Digraph& g, const DoubleArcMap& w);
   
   void run();
   
   void print(std::ostream& out);
+  
+  void printArcList(std::ostream& out) const
+  {
+    typename Digraph::NodeMap<BoolNodeMap*> A(_T, NULL);
+    for (NodeIt v(_T); v != lemon::INVALID; ++v)
+    {
+      A[v] = new BoolNodeMap(_T, false);
+    }
+    
+    for (ArcIt a(_T); a != lemon::INVALID; ++a)
+    {
+      Node u = _T.source(a);
+      Node v = _T.target(a);
+      
+      if (!(*A[u])[v])
+      {
+        out << _label[u] << " -> " << _label[v] << std::endl;
+        A[u]->set(v, true);
+      }
+    }
+    
+    for (NodeIt v(_T); v != lemon::INVALID; ++v)
+    {
+      delete A[v];
+    }
+  }
   
 private:
   typedef std::vector<Arc> ArcVector;
@@ -59,4 +82,4 @@ private:
   DoubleNodeMap _label;
 };
 
-#endif // HTARJAN_H
+#endif // NAIVEHD_H

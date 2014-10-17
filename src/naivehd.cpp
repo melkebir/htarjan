@@ -26,7 +26,7 @@ void NaiveHD::run()
   {
     Node vv = _T.addNode();
     _g2T[v] = vv;
-    _label[vv] = 0;
+    _label[vv] = -1;
   }
   
   // sort by weight
@@ -35,13 +35,10 @@ void NaiveHD::run()
   int itCount = 0;
   for (ArcVectorIt it = _arcs.begin(); it != _arcs.end(); ++it, ++itCount)
   {
-    std::cerr << itCount << "/" << _arcs.size() << "\r" << std::flush;
-//    std::cout << "Considering arc with weight: " << _w[*it] << std::endl;
+//    std::cerr << itCount << "/" << _arcs.size() << "\r" << std::flush;
     
     Arc arc = *it;
     _subG.enable(arc);
-//    std::cout << "Nodes: " << lemon::countNodes(_subG) << std::endl;
-//    std::cout << "Arcs: " << lemon::countArcs(_subG) << std::endl;
     
     int n = lemon::stronglyConnectedComponents(_subG, _comp);
     NodeSetVector components(n, NodeSet());

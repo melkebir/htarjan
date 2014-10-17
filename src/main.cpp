@@ -3,12 +3,11 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <lemon/arg_parser.h>
 
-#include <lemon/list_graph.h>
+#include "hd.h"
 #include "naivehd.h"
-
-typedef lemon::ListDigraph Digraph;
-TEMPLATE_DIGRAPH_TYPEDEFS(Digraph);
+#include "tarjanhd.h"
 
 bool readGraph(Digraph& g, DoubleArcMap& weight, std::istream& in)
 {
@@ -44,7 +43,7 @@ bool readGraph(Digraph& g, DoubleArcMap& weight, std::istream& in)
   {
     std::getline(in, line);
     std::stringstream ss(line);
-
+    
     int a = -1, b = -1;
     double w = -1;
     
@@ -72,16 +71,40 @@ int main(int argc, char** argv)
   Digraph g;
   DoubleArcMap w(g);
   
-//  std::ifstream inFile(argv[1]);
+  lemon::ArgParser ap(argc, argv);
+  ap.boolOption("n", "Use naive method");
+  ap.run();
   
-  if (!readGraph(g, w, std::cin))
+  if (ap.files().size() == 0)
   {
-    return 1;
+    if (!readGraph(g, w, std::cin))
+    {
+      return 1;
+    }
   }
-  
-  NaiveHD nhd(g, w);
-  nhd.run();
-  nhd.print(std::cout);
+  else
+  {
+    std::ifstream inFile(ap.files()[0].c_str());
+    if (!readGraph(g, w, inFile))
+    {
+      return 1;
+    }
+  }
+
+  if (ap.given("n"))
+  {
+    NaiveHD nhd(g, w);
+    nhd.run();
+    nhd.printArcList(std::cout);
+    nhd.print(std::cerr);
+  }
+  else
+  {
+    TarjanHD thd(g, w);
+    thd.run();
+    thd.printArcList(std::cout);
+    thd.print(std::cerr);
+  }
   
   return 0;
 }
