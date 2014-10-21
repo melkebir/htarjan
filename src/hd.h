@@ -5,6 +5,6 @@
 #include <cassert>
 
 typedef lemon::ListDigraph Digraph;
-TEMPLATE_DIGRAPH_TYPEDEFS(Digraph);
+DIGRAPH_TYPEDEFS(Digraph);
 
 #endif // HD_H
