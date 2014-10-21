@@ -66,6 +66,24 @@ public:
   }
   
 private:
+  template<class T>
+  struct NodeHasher
+  {
+  public:
+    using Digraph = T;
+    NodeHasher(const Digraph& g)
+      : _g(g)
+    {
+    }
+    
+    size_t operator()(const typename Digraph::Node& v) const
+    {
+      return std::hash<int>()(_g.id(v));
+    }
+    
+  private:
+    const Digraph& _g;
+  };
   typedef std::vector<Arc> ArcVector;
   typedef std::vector<ArcVector> ArcMatrix;
   
@@ -84,7 +102,7 @@ private:
   typedef std::vector<NodeList> NodeListVector;
   typedef NodeListVector::const_iterator NodeListVectorIt;
   
-  typedef std::unordered_set<Node> NodeSet;
+  typedef std::unordered_set<Node, NodeHasher<Digraph>> NodeSet;
   typedef NodeSet::const_iterator NodeSetIt;
   typedef NodeSet::iterator NodeSetNonConstIt;
   
@@ -183,24 +201,6 @@ private:
     const DoubleArcMap& _w;
   };
   
-  template<class T>
-  struct NodeHasher
-  {
-  public:
-    using Digraph = T;
-    NodeHasher(const Digraph& g)
-      : _g(g)
-    {
-    }
-    
-    size_t operator()(const typename Digraph::Node& v) const
-    {
-      return std::hash<int>()(_g.id(v));
-    }
-    
-  private:
-    const Digraph& _g;
-  };
 };
 
 #endif // TARJANHD_H
