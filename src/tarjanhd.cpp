@@ -119,7 +119,8 @@ Node TarjanHD::hd(const Digraph& g,
     else
     {
       // determine strongly connected components
-      NodeSetVector components(numSCC, NodeSet());
+      NodeHasher<const Digraph> hasher(g);
+      NodeSetVector components(numSCC, NodeSet(0, hasher));
       for (SubNodeIt v(subG); v != lemon::INVALID; ++v)
       {
         components[comp[v]].insert(v);
