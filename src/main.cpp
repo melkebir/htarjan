@@ -102,8 +102,8 @@ int main(int argc, char** argv)
   {
     TarjanHD thd(g, w);
     thd.run();
-//    thd.printArcList(std::cout);
-//    thd.print(std::cerr);
+    thd.printArcList(std::cout);
+    thd.print(std::cerr);
   }
   
   return 0;

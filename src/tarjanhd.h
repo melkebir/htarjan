@@ -84,6 +84,24 @@ private:
   private:
     const Digraph& _g;
   };
+  
+  struct Comparison
+  {
+  public:
+    Comparison(const DoubleArcMap& w)
+    : _w(w)
+    {
+    }
+    
+    bool operator() (const Arc& a, const Arc& b)
+    {
+      return _w[a] < _w[b];
+    }
+    
+  private:
+    const DoubleArcMap& _w;
+  };
+  
   typedef std::vector<Arc> ArcVector;
   typedef std::vector<ArcVector> ArcMatrix;
   
@@ -115,6 +133,11 @@ private:
   typedef SubDigraph::ArcIt SubArcIt;
   typedef SubDigraph::OutArcIt SubOutArcIt;
   
+  typedef std::vector<bool> BoolVector;
+  typedef std::vector<BoolVector> BoolMatrix;
+  
+  typedef typename Digraph::NodeMap<BoolNodeMap*> BoolNodeMatrixMap;
+  
   const Digraph& _orgG;
   const DoubleArcMap& _orgW;
   
@@ -123,6 +146,7 @@ private:
   NodeNodeMap _orgG2T;
   NodeNodeMap _T2OrgG;
   Node _root;
+  ArcList _sortedArcs;
   
   // In: G = (V, {e_1, e_2, ..., e_i, ... e_m})
   //
@@ -130,12 +154,12 @@ private:
   // G_i = (V, {e_1, e_2, ..., e_i}) is acyclic,
   //       i.e. every vertex of G_i is in its own strongly connected component
   // i >= 0
-  Node hd(const Digraph& g,
+  Node hd(Digraph& g,
           const DoubleArcMap& w,
           SubDigraph& subG,
           NodeNodeMap& mapToOrgG,
           NodeNodeMap& G2T,
-          const ArcList& sortedArcs,
+          ArcList& sortedArcs,
           int i);
   
 //  void contract(Digraph& g, SubDigraph& subG, Node u, Node v)
@@ -143,14 +167,72 @@ private:
 //    
 //  }
   
+  int condenseGraph(Digraph& g,
+                    const DoubleArcMap& w,
+                    SubDigraph& subG,
+                    NodeNodeMap& mapToOrgG,
+                    NodeNodeMap& G2T,
+                    ArcList& sortedArcs,
+                    const IntNodeMap& comp,
+                    const NodeSetVector& components,
+                    const NodeVector& roots,
+                    int& j,
+                    ArcList& newSortedArcs);
+  
+  int constructCondensedGraph(const Digraph& g,
+                              const DoubleArcMap& w,
+                              const NodeNodeMap& mapToOrgG,
+                              const NodeNodeMap& G2T,
+                              const ArcList& sortedArcs,
+                              const IntNodeMap& comp,
+                              const NodeSetVector& components,
+                              const NodeVector& roots,
+                              const int j,
+                              Digraph& c,
+                              DoubleArcMap& ww,
+                              NodeNodeMap& mapCToOrgG,
+                              NodeNodeMap& C2T,
+                              ArcList& newSortedArcs);
+  
+  void fixArcList(const Digraph& g,
+                  ArcList& arcs,
+                  int& j)
+  {
+    for (ArcListNonConstIt arcIt = arcs.begin(); arcIt != arcs.end();)
+    {
+      if (g.valid(*arcIt))
+      {
+        ++arcIt;
+      }
+      else
+      {
+        arcIt = arcs.erase(arcIt);
+        --j;
+      }
+    }
+  }
+  
+  void fixNodeSet(const Digraph& g,
+                  NodeSet& nodes)
+  {
+    for (NodeSetNonConstIt nodeIt = nodes.begin(); nodeIt != nodes.end();)
+    {
+      if (g.valid(*nodeIt))
+      {
+        ++nodeIt;
+      }
+      else
+      {
+        nodeIt = nodes.erase(nodeIt);
+      }
+    }
+  }
+  
   int get_i(const ArcList& sortedArcs,
             const DoubleArcMap& w,
             double w_i) const
   {
     int new_i = 0;
-
-//    std::cout << w_i << ": ";
-//    print(sortedArcs, w, std::cout);
 
     for (ArcListIt arcIt = sortedArcs.begin();
          arcIt != sortedArcs.end() && w[*arcIt] <= w_i;
@@ -183,24 +265,6 @@ private:
     }
     out << std::endl;
   }
-  
-  struct Comparison
-  {
-  public:
-    Comparison(const DoubleArcMap& w)
-    : _w(w)
-    {
-    }
-    
-    bool operator() (const Arc& a, const Arc& b)
-    {
-      return _w[a] < _w[b];
-    }
-    
-  private:
-    const DoubleArcMap& _w;
-  };
-  
 };
 
 #endif // TARJANHD_H
