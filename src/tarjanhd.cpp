@@ -16,33 +16,29 @@ TarjanHD::TarjanHD(const Digraph& g, const DoubleArcMap& w)
 void TarjanHD::run()
 {
   _T.clear();
-  
-  // let's make a copy of the graph
-  Digraph g;
-  DoubleArcMap w(g);
-  NodeNodeMap mapToOrgG(g, lemon::INVALID);
-  
-  lemon::digraphCopy(_orgG, g)
-    .arcMap(_orgW, w)
-    .nodeCrossRef(mapToOrgG)
-    .run();
+
+  NodeNodeMap mapToOrgG(_orgG, lemon::INVALID);
+  for (NodeIt v(_orgG); v != lemon::INVALID; ++v)
+  {
+    mapToOrgG[v] = v;
+  }
   
   ArcList arcs;
-  for (ArcIt a(g); a != lemon::INVALID; ++a)
+  for (ArcIt a(_orgG); a != lemon::INVALID; ++a)
   {
     arcs.push_back(a);
   }
 
   // sort by weight
-  arcs.sort(Comparison(w));
+  arcs.sort(Comparison(_orgW));
 
-  BoolArcMap arcFilter(g, true);
-  BoolNodeMap nodeFilter(g, true);
-  NodeNodeMap G2T(g, lemon::INVALID);
+  BoolArcMap arcFilter(_orgG, true);
+  BoolNodeMap nodeFilter(_orgG, true);
+  NodeNodeMap G2T(_orgG, lemon::INVALID);
  
-  SubDigraph subG(g, nodeFilter, arcFilter);
+  SubDigraph subG(_orgG, nodeFilter, arcFilter);
   
-  _root = hd(g, w, subG, mapToOrgG, G2T, arcs, 0);
+  _root = hd(_orgG, _orgW, subG, mapToOrgG, G2T, arcs, 0);
 }
 
 Node TarjanHD::hd(const Digraph& g,
@@ -155,10 +151,7 @@ Node TarjanHD::hd(const Digraph& g,
           // remove nodes not in component from the graph
           for (NodeIt v(g); v != lemon::INVALID; ++v)
           {
-            if (component.find(v) == component.end())
-            {
-              subG.disable(v);
-            }
+            subG.status(v, component.find(v) != component.end());
           }
           
           // find new_i, i.e. largest k such that w(e'_k) <= w(e_i)
@@ -169,11 +162,15 @@ Node TarjanHD::hd(const Digraph& g,
           
           // recurse on strongly connected component
           roots[k] = hd(g, w, subG, mapToOrgG, G2T, newSortedArcs, new_i);
-          
-          // enable all nodes again
-          for (NodeIt v(g); v != lemon::INVALID; ++v)
+        }
+        
+        // enable all nodes again
+        for (int k = 0; k < numSCC; ++k)
+        {
+          const NodeSet& component = components[k];
+          for (NodeSetIt nodeIt = component.begin(); nodeIt != component.end(); ++nodeIt)
           {
-            subG.enable(v);
+            subG.enable(*nodeIt);
           }
         }
       }
@@ -183,71 +180,91 @@ Node TarjanHD::hd(const Digraph& g,
       // from the resulting sets of multiple arcs retain only those with minimum weight
       Digraph c;
       DoubleArcMap ww(c);
-      lemon::DynArcLookUp<Digraph> lookUpArc(c);
+      NodeNodeMap mapCToOrgG(c);
       NodeNodeMap C2T(c);
-      
-      // first construct the nodes
-      NodeVector nodesOfC(numSCC, lemon::INVALID);
-      NodeNodeMap mapCToOrgG(c, lemon::INVALID);
-      for (int k = 0; k < numSCC; ++k)
-      {
-        Node v = nodesOfC[k] = c.addNode();
-        
-        if (components[k].size() == 1)
-        {
-          mapCToOrgG[v] = mapToOrgG[*components[k].begin()];
-          C2T[v] = G2T[*components[k].begin()];
-        }
-        else
-        {
-          mapCToOrgG[v] = lemon::INVALID;
-          C2T[v] = roots[k];
-        }
-      }
-      
-      // next construct the arcs: O(m) time
       ArcList newSortedArcs;
-      for (ArcListIt arcIt = sortedArcs.begin(); arcIt != sortedArcs.end(); ++arcIt)
-      {
-        Arc a = *arcIt;
-        Node u = g.source(a);
-        Node v = g.target(a);
-        
-        Node uu = nodesOfC[comp[u]];
-        Node vv = nodesOfC[comp[v]];
-        if (uu != vv)
-        {
-          Arc aa = lookUpArc(uu, vv);
-          if (aa == lemon::INVALID)
-          {
-            aa = c.addArc(uu, vv);
-            newSortedArcs.push_back(aa);
-            ww[aa] = w[a];
-          }
-#ifdef DEBUG
-          else
-          {
-            assert(w[a] > ww[aa]);
-          }
-#endif
-        }
-      }
       
-      int new_i = get_i(newSortedArcs, ww, w[getArcByRank(sortedArcs, j)]);
+      int new_i = constructCondensedGraph(g, w, mapToOrgG, G2T, sortedArcs,
+                                          comp, components, roots, j,
+                                          c, ww, mapCToOrgG, C2T, newSortedArcs);
       
       BoolArcMap newArcFilter(c, true);
       BoolNodeMap newNodeFilter(c, true);
       SubDigraph subC(c, newNodeFilter, newArcFilter);
       
-//      print(c, ww, std::cout);
-      
       Node root = hd(c, ww, subC, mapCToOrgG, C2T, newSortedArcs, new_i);
-      
-//      print(std::cout);
-      
       return root;
     }
   }
   
   return lemon::INVALID;
+}
+
+int TarjanHD::constructCondensedGraph(const Digraph& g,
+                                      const DoubleArcMap& w,
+                                      const NodeNodeMap& mapToOrgG,
+                                      const NodeNodeMap& G2T,
+                                      const ArcList& sortedArcs,
+                                      const IntNodeMap& comp,
+                                      const NodeSetVector& components,
+                                      const NodeVector& roots,
+                                      const int j,
+                                      Digraph& c,
+                                      DoubleArcMap& ww,
+                                      NodeNodeMap& mapCToOrgG,
+                                      NodeNodeMap& C2T,
+                                      ArcList& newSortedArcs)
+{
+  // construct the condensed graph:
+  // each strongly connected component is collapsed into a single node, and
+  // from the resulting sets of multiple arcs retain only those with minimum weight
+  lemon::DynArcLookUp<Digraph> lookUpArc(c);
+  
+  // first construct the nodes
+  const size_t numSCC = components.size();
+  NodeVector nodesOfC(numSCC, lemon::INVALID);
+  for (size_t k = 0; k < numSCC; ++k)
+  {
+    Node v = nodesOfC[k] = c.addNode();
+    
+    if (components[k].size() == 1)
+    {
+      mapCToOrgG[v] = mapToOrgG[*components[k].begin()];
+      C2T[v] = G2T[*components[k].begin()];
+    }
+    else
+    {
+      mapCToOrgG[v] = lemon::INVALID;
+      C2T[v] = roots[k];
+    }
+  }
+  
+  // next construct the arcs: O(m) time
+  for (ArcListIt arcIt = sortedArcs.begin(); arcIt != sortedArcs.end(); ++arcIt)
+  {
+    Arc a = *arcIt;
+    Node u = g.source(a);
+    Node v = g.target(a);
+    
+    Node uu = nodesOfC[comp[u]];
+    Node vv = nodesOfC[comp[v]];
+    if (uu != vv)
+    {
+      Arc aa = lookUpArc(uu, vv);
+      if (aa == lemon::INVALID)
+      {
+        aa = c.addArc(uu, vv);
+        newSortedArcs.push_back(aa);
+        ww[aa] = w[a];
+      }
+#ifdef DEBUG
+      else
+      {
+        assert(w[a] > ww[aa]);
+      }
+#endif
+    }
+  }
+  
+  return get_i(newSortedArcs, ww, w[getArcByRank(sortedArcs, j)]);
 }

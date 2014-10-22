@@ -159,6 +159,21 @@ private:
     return new_i;
   }
   
+  int constructCondensedGraph(const Digraph& g,
+                              const DoubleArcMap& w,
+                              const NodeNodeMap& mapToOrgG,
+                              const NodeNodeMap& G2T,
+                              const ArcList& sortedArcs,
+                              const IntNodeMap& comp,
+                              const NodeSetVector& components,
+                              const NodeVector& roots,
+                              const int j,
+                              Digraph& c,
+                              DoubleArcMap& ww,
+                              NodeNodeMap& mapCToOrgG,
+                              NodeNodeMap& C2T,
+                              ArcList& newSortedArcs);
+  
   Arc getArcByRank(const ArcList& sortedArcs, int rank)
   {
     assert(1 <= rank && rank <= static_cast<int>(sortedArcs.size()));
