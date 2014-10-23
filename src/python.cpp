@@ -156,7 +156,6 @@ p::tuple wrap_naive(const np::ndarray& array)
   
   NaiveHD nhd(g, w);
   nhd.run();
-  nhd.printTree(std::cout);
 
   return make_results(g, nhd);
 }
