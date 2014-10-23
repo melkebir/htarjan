@@ -1,9 +1,17 @@
+/*
+ *  main.cpp
+ *
+ *   Created on: 14-oct-2014
+ *       Author: M. El-Kebir
+ */
+
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
 #include <vector>
 #include <lemon/arg_parser.h>
+#include <lemon/connectivity.h>
 
 #include "hd.h"
 #include "naivehd.h"
@@ -63,6 +71,12 @@ bool readGraph(Digraph& g, DoubleArcMap& weight, std::istream& in)
     weight[arc] = w;
   }
   
+  if (lemon::stronglyConnected(g))
+  {
+    std::cerr << "Graph is not strongly connected" << std::endl;
+    return false;
+  }
+  
   return true;
 }
 
@@ -95,15 +109,15 @@ int main(int argc, char** argv)
   {
     NaiveHD nhd(g, w);
     nhd.run();
-    nhd.printArcList(std::cout);
-    nhd.print(std::cerr);
+    nhd.printTreeArcList(std::cout);
+    nhd.printTree(std::cerr);
   }
   else
   {
     TarjanHD thd(g, w);
     thd.run();
-    thd.printArcList(std::cout);
-    thd.print(std::cerr);
+    thd.printTreeArcList(std::cout);
+    thd.printTree(std::cerr);
   }
   
   return 0;

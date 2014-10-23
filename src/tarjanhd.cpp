@@ -1,15 +1,16 @@
+/*
+ *  tarjanhd.cpp
+ *
+ *   Created on: 17-oct-2014
+ *       Author: M. El-Kebir
+ */
+
 #include "tarjanhd.h"
 #include <lemon/connectivity.h>
 #include <limits>
 
 TarjanHD::TarjanHD(const Digraph& g, const DoubleArcMap& w)
-  : _orgG(g)
-  , _orgW(w)
-  , _T()
-  , _label(_T, -1)
-  , _orgG2T(_orgG, lemon::INVALID)
-  , _T2OrgG(_T, lemon::INVALID)
-  , _root(lemon::INVALID)
+  : HD(g, w)
 {
 }
 
@@ -39,6 +40,7 @@ void TarjanHD::run()
   SubDigraph subG(_orgG, nodeFilter, arcFilter);
   
   _root = hd(_orgG, _orgW, subG, mapToOrgG, G2T, arcs, 0);
+  fixTree(_root);
 }
 
 Node TarjanHD::hd(const Digraph& g,
@@ -55,7 +57,7 @@ Node TarjanHD::hd(const Digraph& g,
   assert(m == lemon::countArcs(subG));
   
   int r = m - i;
-  if (r == 1)
+  if (r == 0 || r == 1)
   {
     // add to _T a subtree rooted at node r,
     // labeled with w(e_m) and having n children labeled with
@@ -116,7 +118,7 @@ Node TarjanHD::hd(const Digraph& g,
     {
       // determine strongly connected components
       NodeHasher<Digraph> hasher(g);
-      NodeSetVector components(numSCC, NodeSet(0, hasher));
+      NodeSetVector components(numSCC, NodeSet(42, hasher));
       for (SubNodeIt v(subG); v != lemon::INVALID; ++v)
       {
         components[comp[v]].insert(v);
