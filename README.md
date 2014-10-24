@@ -34,7 +34,7 @@ Next install `Boost.NumPy`:
     mkdir build
     cd build
     cmake -DCMAKE_INSTALL_PREFIX=~/Boost.NumPy -DLIBRARY_TYPE=STATIC -DBUILD_EXAMPLES=OFF -DBUILD_TEST=OFF ..
-    mkae install
+    make install
   
 Finally, compile `htarjan`:
 
