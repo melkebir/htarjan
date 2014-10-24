@@ -46,13 +46,19 @@ SET( HTarjan_Hdr
   src/tarjanhd.h
 )
 
+# Set a default build type if none was specified
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  MESSAGE(STATUS "Setting build type to 'Release' as none was specified.")
+  SET(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+ENDIF()
+
 SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-write-strings -std=c++11" )
 
-set( LIBLEMON_ROOT "$ENV{HOME}/lemon" CACHE PATH "Additional search directory for lemon library" )
-set( LIBBOOST_NUMPY_ROOT "$ENV{HOME}/Boost.NumPy" CACHE PATH "Additional search directory for Boost.NumPy library" )
+SET( LIBLEMON_ROOT "$ENV{HOME}/lemon" CACHE PATH "Additional search directory for lemon library" )
+SET( LIBBOOST_NUMPY_ROOT "$ENV{HOME}/Boost.NumPy" CACHE PATH "Additional search directory for Boost.NumPy library" )
 
 # global settings for include paths
-include_directories(
+INCLUDE_DIRECTORIES(
   "${PROJECT_SOURCE_DIR}/src"
   ${PYTHON_INCLUDE_DIRS}
   ${NUMPY_INCLUDE_DIRS}
@@ -61,8 +67,8 @@ include_directories(
   "${LIBBOOST_NUMPY_ROOT}/include"
 )
 
-link_directories( "${LIBLEMON_ROOT}/lib" "${LIBBOOST_NUMPY_ROOT}/lib" ${Boost_LIBRARY_DIRS} )
-set( CommonLibs
+LINK_DIRECTORIES( "${LIBLEMON_ROOT}/lib" "${LIBBOOST_NUMPY_ROOT}/lib" ${Boost_LIBRARY_DIRS} )
+SET( CommonLibs
 	emon
   boost_python
   boost_numpy
