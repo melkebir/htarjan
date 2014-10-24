@@ -3,7 +3,7 @@ Hierarchical decomposition
 
 Given a strongly connected, directed graph *G = (V, E)* with edge weights *w : E -> R*, its hierarchical decomposition is constructively defined as follows. We iteratively consider the edges in increasing order by weights. At iteration *i* we compute the strongly connected components on the graph *G_i = (V, E_i)*. Initially at iteration i = 0, *E_i* is the empty set and we thus have |V| strongly connected components consisting of single nodes each. At subsequent iterations, the strongly connected components group together until at iteration *|E|* all nodes are part of one single strongly connected component.
 
-A hierarchical decomposition can be represented as a tree *T* whose leaves correspond to the node set *V*, and whose internal nodes are labeled by an edge weight of *G*. Given a weight *c*, removing all internal nodes of *T* that are labeled by a larger weight than *c* results in a forest. The leaves of the trees of this forest correspond to the strongly connected components of the subgraph *G' = (V, E')* where *E'* is consists of all edges of *E* that have weight at most *c*.
+A hierarchical decomposition can be represented as a tree *T* whose leaves correspond to the node set *V*, and whose internal nodes are labeled by an edge weight of *G*. Given a weight *c*, removing all internal nodes of *T* that are labeled by a larger weight than *c* results in a forest. The leaves of the trees of this forest correspond to the strongly connected components of the subgraph *G' = (V, E')* where *E'* consists of all edges of *E* that have weight at most *c*.
 
 This package contains an implementation of Tarjan's algorithm that runs in *O(|E| log |V|)* time [1]. Note that we do not require the edge weights to be distinct.
 
