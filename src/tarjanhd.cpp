@@ -102,8 +102,6 @@ Node TarjanHD::hd(const Digraph& g,
       ++arcIt;
     }
     
-//    print(subG, w, std::cout);
-    
     // compute SCCs
     IntNodeMap comp(g, -1);
     int numSCC = lemon::stronglyConnectedComponents(subG, comp);
@@ -147,9 +145,6 @@ Node TarjanHD::hd(const Digraph& g,
             }
           }
           
-//          std::cout << "Component " << k << ": ";
-//          print(newSortedArcs, w, std::cout);
-          
           // remove nodes not in component from the graph
           for (NodeIt v(g); v != lemon::INVALID; ++v)
           {
@@ -159,8 +154,6 @@ Node TarjanHD::hd(const Digraph& g,
           // find new_i, i.e. largest k such that w(e'_k) <= w(e_i)
           // if i == 0 or i > 0 but no such k exists => new_i := 0
           int new_i = get_i(newSortedArcs, w, w_i);
-          
-//          print(subG, w, std::cout);
           
           // recurse on strongly connected component
           roots[k] = hd(g, w, subG, mapToOrgG, G2T, newSortedArcs, new_i);
