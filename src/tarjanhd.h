@@ -102,7 +102,7 @@ private:
       for (InArcIt a(_T, root); a != lemon::INVALID; ++a)
       {
         Node child = _T.source(a);
-        if (_label[root] == _label[child])
+        if (_T2OrgG[child] == lemon::INVALID && _label[root] == _label[child])
           sameWeightChildren.insert(child);
       }
       
